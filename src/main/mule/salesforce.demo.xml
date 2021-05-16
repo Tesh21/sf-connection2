@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="549d6efe-5073-469b-b40e-69080f44a0d3" >
+		<http:listener-connection host="0.0.0.0" port="8082" />
+	</http:listener-config>
+	
+	<flow name="salesforce.demoFlow" doc:id="40f4a4d0-73df-4fd5-b3aa-0086ba0912eb" >
+		<http:listener doc:name="Listener" doc:id="1d341950-09fa-49b5-a0b9-bb07725907fb" config-ref="HTTP_Listener_config" path="/account"/>
+		<ee:transform doc:name="Transform Message" doc:id="746f808f-f41c-4ef3-966f-f2c777db4695" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+ payload map(items, index) ->
+[
+{
+	ID:items.ID,
+	code:items.code,
+	price:items.price,
+	departureDate:items.departureDate,
+	origin:items.origin,
+	destination:items.destination,
+	emptySeats:items.emptySeats
+}
+
+]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:create type="Account" doc:name="Create" doc:id="4107a7e8-162b-481f-b0cb-a5f07b0b3206" config-ref="Salesforce_Config"/>
+		<ee:transform doc:name="Transform Message" doc:id="cdeb544a-ef28-425b-93e8-a4283fee6a7b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/xml
+---
+
+	payload
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
